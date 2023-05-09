@@ -36,6 +36,7 @@ use core::{
     hash::{Hash, Hasher},
     marker::PhantomData,
 };
+use std::time::{SystemTime, UNIX_EPOCH};
 use manta_util::codec::{self, DecodeError};
 
 #[cfg(feature = "scale")]
@@ -594,9 +595,15 @@ where
     where
         R: CryptoRng + RngCore + ?Sized,
     {
-        ArkGroth16::prove(&context.proving_key, compiler, &mut SizedRng(rng))
+        let t1 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        println!("Current Micro Seconds: {}", t1.as_micros());
+        let r = ArkGroth16::prove(&context.proving_key, compiler, &mut SizedRng(rng))
             .map(Proof)
-            .map_err(|_| Error)
+            .map_err(|_| Error);
+        let t2 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        println!(" Micro Seconds: {}", t2.as_micros() - t1.as_micros());
+
+        r
     }
 
     #[inline]
